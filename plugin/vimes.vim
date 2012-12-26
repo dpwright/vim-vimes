@@ -29,4 +29,42 @@ function! vimes#convert_string(str_in)
   return str_out
 endfunction
 
+function! s:operator(type, op) abort
+  let sel_save = &selection
+  let cb_save = &clipboard
+  let reg_save = @@
+  try
+    set selection=inclusive clipboard-=unnamed clipboard-=unnamedplus
+    if a:type ==# 'line'
+      silent exe "normal! '[V']".a:op
+    elseif a:type ==# 'block'
+      silent exe "normal! `[\<C-V>`]".a:op
+    else
+      silent exe "normal! `[v`]".a:op
+    endif
+    return @@
+  finally
+    let @@ = reg_save
+    let &selection = sel_save
+    let &clipboard = cb_save
+  endtry
+endfunction
+
+function! s:roma_hira_op(type) abort
+  let romaji = s:operator(a:type, "y")
+
+  let reg_save = @@
+  try
+    let @@ = vimes#convert_string(romaji)
+    normal! gvp`[
+  finally
+    let @@ = reg_save
+  endtry
+endfunction
+
+nnoremap <silent> <Plug>VimesRomajiToHiragana  :<C-U>set opfunc=<SID>roma_hira_op<CR>g@
+xnoremap <silent> <Plug>VimesRomajiToHiragana  :<C-U>call <SID>roma_hira_op(visualmode())<CR>
+nmap <buffer> crh <Plug>VimesRomajiToHiragana
+xmap <buffer> crh <Plug>VimesRomajiToHiragana
+
 " vim:set et sw=2:
