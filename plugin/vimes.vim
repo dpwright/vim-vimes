@@ -6,8 +6,11 @@ if exists("g:loaded_vimes") || v:version < 700 || &cp
 endif
 let g:loaded_vimes = 1
 
+" Globals {{{1
 let g:kanji_start_point = 0
+" }}}1
 
+" Character conversion {{{1
 function! vimes#complete(findstart, base) abort
   if a:findstart
     return g:kanji_start_point
@@ -41,19 +44,9 @@ function! vimes#convert_string(str_in)
 
   return str_out
 endfunction
+" }}}1
 
-function! s:hira_kan_op(type) abort
-  let g:kanji_start_point = col("'[") - 1
-  silent exe "normal! `]"
-  set completefunc=vimes#complete
-  call feedkeys("a\<C-x>\<C-u>", "n")
-endfunction
-
-nnoremap <silent> <Plug>VimesHiraganaToKanji :<C-U>set opfunc=<SID>hira_kan_op<CR>g@
-xnoremap <silent> <Plug>VimesHiraganaToKanji <SID>hira_kan_op(visualmode())
-nmap <buffer> chj <Plug>VimesHiraganaToKanji
-xmap <buffer> chj <Plug>VimesHiraganaToKanji
-
+" Movement operators {{{1
 function! s:operator(type, op) abort
   let sel_save = &selection
   let cb_save = &clipboard
@@ -87,9 +80,24 @@ function! s:roma_hira_op(type) abort
   endtry
 endfunction
 
+function! s:hira_kan_op(type) abort
+  let g:kanji_start_point = col("'[") - 1
+  silent exe "normal! `]"
+  set completefunc=vimes#complete
+  call feedkeys("a\<C-x>\<C-u>", "n")
+endfunction
+" }}}1
+
+" Mappings {{{1
+nnoremap <silent> <Plug>VimesHiraganaToKanji :<C-U>set opfunc=<SID>hira_kan_op<CR>g@
+xnoremap <silent> <Plug>VimesHiraganaToKanji <SID>hira_kan_op(visualmode())
+nmap <buffer> chj <Plug>VimesHiraganaToKanji
+xmap <buffer> chj <Plug>VimesHiraganaToKanji
+
 nnoremap <silent> <Plug>VimesRomajiToHiragana  :<C-U>set opfunc=<SID>roma_hira_op<CR>g@
 xnoremap <silent> <Plug>VimesRomajiToHiragana  :<C-U>call <SID>roma_hira_op(visualmode())<CR>
 nmap <buffer> crh <Plug>VimesRomajiToHiragana
 xmap <buffer> crh <Plug>VimesRomajiToHiragana
+" }}}1
 
 " vim:set et sw=2:
