@@ -6,6 +6,19 @@ if exists("g:loaded_vimes") || v:version < 700 || &cp
 endif
 let g:loaded_vimes = 1
 
+let g:kanji_start_point = 0
+
+function! vimes#complete(findstart, base) abort
+  if a:findstart
+    return g:kanji_start_point
+  else
+    let google_out = system("curl -s --data \"langpair=ja-Hira|ja\" --data \"text=" . a:base . "\" http://www.google.com/transliterate")
+    let matches = ParseJSON('{ "matches": ' . google_out . '}')["matches"][0][1]
+    call add(matches, a:base)
+    return {'words': matches}
+  end
+endfunction
+
 function! vimes#convert_string(str_in)
   let str_out = a:str_in
   let start = 0
@@ -28,6 +41,18 @@ function! vimes#convert_string(str_in)
 
   return str_out
 endfunction
+
+function! s:hira_kan_op(type) abort
+  let g:kanji_start_point = col("'[") - 1
+  silent exe "normal! `]"
+  set completefunc=vimes#complete
+  call feedkeys("a\<C-x>\<C-u>", "n")
+endfunction
+
+nnoremap <silent> <Plug>VimesHiraganaToKanji :<C-U>set opfunc=<SID>hira_kan_op<CR>g@
+xnoremap <silent> <Plug>VimesHiraganaToKanji <SID>hira_kan_op(visualmode())
+nmap <buffer> chj <Plug>VimesHiraganaToKanji
+xmap <buffer> chj <Plug>VimesHiraganaToKanji
 
 function! s:operator(type, op) abort
   let sel_save = &selection
