@@ -7,6 +7,7 @@ endif
 let g:loaded_vimes = 1
 
 " Globals {{{1
+let g:hiragana_start_point = 0
 let g:kanji_start_point = 0
 let g:state = 'inactive'
 " }}}1
@@ -93,9 +94,67 @@ endfunction
 function! vimes#toggle()
   if g:state ==# 'inactive'
     let g:state = 'idle'
+    call vimes#activate()
   else
     let g:state = 'inactive'
+    call vimes#deactivate()
   endif
+endfunction
+
+function! vimes#reset_hiragana_startpoint()
+  let g:hiragana_start_point = col('.') - 1
+endfunction
+
+function! vimes#cursor_update()
+  let current_pos = getpos('.')
+  let current_col = current_pos[2] - 1
+  if current_col >= g:hiragana_start_point
+    let len = current_col - g:hiragana_start_point
+    let line = getline('.')
+    let linelen = strlen(line)
+
+    let substr = strpart(line, g:hiragana_start_point, len)
+    let input_length = strlen(substr)
+
+    let converted_string = vimes#convert_string(substr)
+    if converted_string != substr
+      let converted_length = strlen(converted_string)
+
+      let pre_length = current_col - input_length
+
+      let pre_string = strpart(line, 0, pre_length)
+      let post_string = strpart(line, current_col, linelen - current_col)
+
+      let lineout = pre_string . converted_string . post_string
+      call setline('.', lineout)
+
+      let newpos = current_pos
+      let newpos[2] = pre_length + converted_length + 1
+      call setpos('.', newpos)
+
+      call vimes#reset_hiragana_startpoint()
+    endif
+  else
+    call vimes#reset_hiragana_startpoint()
+  end
+endfunction
+
+function! vimes#activate()
+  call vimes#reset_hiragana_startpoint()
+
+  augroup vimes_insert_mode
+    autocmd!
+    autocmd CursorMovedI * call vimes#cursor_update()
+    autocmd InsertEnter * call vimes#insert_enter()
+    autocmd InsertLeave * call vimes#insert_leave()
+  augroup END
+
+endfunction
+
+function! vimes#deactivate()
+  augroup vimes_insert_mode
+    autocmd!
+  augroup END
 endfunction
 
 function! vimes#statusline()
