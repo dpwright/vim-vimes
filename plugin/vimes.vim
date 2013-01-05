@@ -10,6 +10,8 @@ let g:loaded_vimes = 1
 let g:hiragana_start_point = 0
 let g:kanji_start_point = 0
 let g:state = 'inactive'
+
+hi VimesCurrent  ctermbg=DarkMagenta     ctermfg=Black  guibg=#FF00CC    guifg=Black
 " }}}1
 
 " Character conversion {{{1
@@ -112,6 +114,26 @@ function! vimes#reset_startpoints()
   call vimes#reset_kanji_startpoint()
 endfunction
 
+function! vimes#clear_highlight()
+  execute "syntax clear VimesCurrent"
+endfunction
+
+function! vimes#update_highlight()
+  call vimes#clear_highlight()
+
+  let current_pos = getpos('.')
+  let current_col = current_pos[2] - 1
+
+  let kanji_start = g:kanji_start_point
+  if current_col > kanji_start
+    let line = getline('.')
+    let len = current_col - kanji_start
+    let substr = strpart(line, kanji_start, len)
+
+    execute "syntax match VimesCurrent \"" . substr . "\""
+  endif
+endfunction
+
 function! vimes#cursor_update()
   let current_pos = getpos('.')
   let current_col = current_pos[2] - 1
@@ -153,6 +175,8 @@ function! vimes#cursor_update()
   if current_col < g:kanji_start_point
     call vimes#reset_kanji_startpoint()
   endif
+
+  call vimes#update_highlight()
 endfunction
 
 function! vimes#insert_enter()
@@ -160,6 +184,8 @@ function! vimes#insert_enter()
 endfunction
 
 function! vimes#insert_leave()
+  call vimes#clear_highlight()
+
   let g:state = 'idle'
 endfunction
 
