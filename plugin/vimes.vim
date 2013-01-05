@@ -137,6 +137,12 @@ function! vimes#update_highlight()
 endfunction
 
 function! vimes#cursor_update()
+  if g:state ==# 'select_kanji'
+    let g:hiragana_start_point = col('.') - 2
+    let g:kanji_start_point = col('.') - 2
+    call vimes#clear_highlight()
+  endif
+
   let current_pos = getpos('.')
   let current_col = current_pos[2] - 1
   let line = getline('.')
@@ -187,9 +193,39 @@ function! vimes#cursor_update()
   let g:line_last_input = getline('.')
 endfunction
 
+function! vimes#handle_input(input)
+  let current_pos = getpos('.')
+  let current_col = current_pos[2] - 1
+
+  if a:input == "\<cr>"
+    if current_col > g:kanji_start_point
+      call vimes#reset_startpoints()
+      call vimes#clear_highlight()
+      if g:state ==# 'typing'
+        call vimes#set_state('idle')
+        return ""
+      elseif g:state ==# 'select_kanji'
+        call vimes#set_state('idle')
+        return "\<C-x>\<C-y>"
+      endif
+    endif
+  elseif a:input == "\<space>"
+    if g:state ==# 'typing'
+      call vimes#set_state('select_kanji')
+      return "\<C-x>\<C-u>"
+    elseif g:state ==# 'select_kanji'
+      return "\<C-n>"
+    endif
+  endif
+
+  return a:input
+endfunction
+
 function! vimes#set_state(state)
   if a:state ==# 'idle'
     let line = getline('.')
+  elseif a:state ==# 'select_kanji'
+    set completefunc=vimes#complete
   endif
 
   let g:state = a:state
@@ -209,6 +245,9 @@ endfunction
 function! vimes#activate()
   call vimes#reset_startpoints()
 
+  inoremap <buffer> <expr> <space> vimes#handle_input("\<space>")
+  inoremap <buffer> <expr> <cr>    vimes#handle_input("\<cr>")
+
   augroup vimes_insert_mode
     autocmd!
     autocmd CursorMovedI * call vimes#cursor_update()
@@ -224,6 +263,9 @@ function! vimes#activate()
 endfunction
 
 function! vimes#deactivate()
+  inoremap <buffer>        <space> <space>
+  inoremap <buffer>        <cr>    <cr>
+
   augroup vimes_insert_mode
     autocmd!
   augroup END
