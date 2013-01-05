@@ -144,7 +144,7 @@ function! vimes#cursor_update()
   endif
 
   if current_col > g:kanji_start_point
-    let g:state = 'typing'
+    call vimes#set_state('typing')
   endif
 
   if current_col >= g:hiragana_start_point
@@ -185,6 +185,10 @@ function! vimes#cursor_update()
   let g:pos_last_input = current_pos
 endfunction
 
+function! vimes#set_state(state)
+  let g:state = a:state
+endfunction
+
 function! vimes#insert_enter()
   call vimes#reset_startpoints()
 endfunction
@@ -192,7 +196,7 @@ endfunction
 function! vimes#insert_leave()
   call vimes#clear_highlight()
 
-  let g:state = 'idle'
+  call vimes#set_state('idle')
 endfunction
 
 function! vimes#activate()
@@ -205,7 +209,7 @@ function! vimes#activate()
     autocmd InsertLeave * call vimes#insert_leave()
   augroup END
 
-  let g:state = 'idle'
+  call vimes#set_state('idle')
 endfunction
 
 function! vimes#deactivate()
@@ -213,7 +217,7 @@ function! vimes#deactivate()
     autocmd!
   augroup END
 
-  let g:state = 'inactive'
+  call vimes#set_state('inactive')
 endfunction
 
 function! vimes#statusline()
