@@ -9,6 +9,7 @@ let g:loaded_vimes = 1
 " Globals {{{1
 let g:hiragana_start_point = 0
 let g:kanji_start_point = 0
+let g:pos_last_input = getpos('.')
 let g:state = 'inactive'
 
 hi VimesCurrent  ctermbg=DarkMagenta     ctermfg=Black  guibg=#FF00CC    guifg=Black
@@ -138,6 +139,10 @@ function! vimes#cursor_update()
   let current_pos = getpos('.')
   let current_col = current_pos[2] - 1
 
+  if current_pos[1] != g:pos_last_input[1]
+    call vimes#reset_startpoints()
+  endif
+
   if current_col > g:kanji_start_point
     let g:state = 'typing'
   endif
@@ -177,6 +182,7 @@ function! vimes#cursor_update()
   endif
 
   call vimes#update_highlight()
+  let g:pos_last_input = current_pos
 endfunction
 
 function! vimes#insert_enter()
