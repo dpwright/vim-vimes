@@ -8,6 +8,7 @@ let g:loaded_vimes = 1
 
 " Globals {{{1
 let g:kanji_start_point = 0
+let g:state = 'inactive'
 " }}}1
 
 " Character conversion {{{1
@@ -88,6 +89,16 @@ function! s:hira_kan_op(type) abort
 endfunction
 " }}}1
 
+" Vimes Interactive Mode {{{1
+function! vimes#toggle()
+  if g:state ==# 'inactive'
+    let g:state = 'idle'
+  else
+    let g:state = 'inactive'
+  endif
+endfunction
+" }}}1
+
 " Mappings {{{1
 nnoremap <silent> <Plug>VimesHiraganaToKanji :<C-U>set opfunc=<SID>hira_kan_op<CR>g@
 xnoremap <silent> <Plug>VimesHiraganaToKanji <SID>hira_kan_op(visualmode())
@@ -98,6 +109,9 @@ nnoremap <silent> <Plug>VimesRomajiToHiragana  :<C-U>set opfunc=<SID>roma_hira_o
 xnoremap <silent> <Plug>VimesRomajiToHiragana  :<C-U>call <SID>roma_hira_op(visualmode())<CR>
 nmap <buffer> crh <Plug>VimesRomajiToHiragana
 xmap <buffer> crh <Plug>VimesRomajiToHiragana
+
+noremap  <silent> <leader>j :call vimes#toggle()<cr>
+inoremap <silent> <leader>j <esc>:call vimes#toggle()<cr>a
 " }}}1
 
 " vim:set et sw=2:
