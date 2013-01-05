@@ -97,6 +97,10 @@ function! vimes#toggle()
     let g:state = 'inactive'
   endif
 endfunction
+
+function! vimes#statusline()
+  return '[Vimes: ' . g:state . ']'
+endfunction
 " }}}1
 
 " Mappings {{{1
