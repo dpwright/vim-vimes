@@ -10,7 +10,7 @@ let g:loaded_vimes = 1
 let g:hiragana_start_point = 0
 let g:kanji_start_point = 0
 let g:pos_last_input = getpos('.')
-let g:state = 'inactive'
+let g:state = 'disabled'
 
 hi VimesCurrent  ctermbg=DarkMagenta     ctermfg=Black  guibg=#FF00CC    guifg=Black
 " }}}1
@@ -95,7 +95,7 @@ endfunction
 
 " Vimes Interactive Mode {{{1
 function! vimes#toggle()
-  if g:state ==# 'inactive'
+  if g:state ==# 'disabled'
     call vimes#activate()
   else
     call vimes#deactivate()
@@ -191,12 +191,13 @@ endfunction
 
 function! vimes#insert_enter()
   call vimes#reset_startpoints()
+  call vimes#set_state('idle')
 endfunction
 
 function! vimes#insert_leave()
   call vimes#clear_highlight()
 
-  call vimes#set_state('idle')
+  call vimes#set_state('inactive')
 endfunction
 
 function! vimes#activate()
@@ -209,7 +210,11 @@ function! vimes#activate()
     autocmd InsertLeave * call vimes#insert_leave()
   augroup END
 
-  call vimes#set_state('idle')
+  if mode() ==# 'i'
+    call vimes#set_state('idle')
+  else
+    call vimes#set_state('inactive')
+  endif
 endfunction
 
 function! vimes#deactivate()
@@ -217,7 +222,7 @@ function! vimes#deactivate()
     autocmd!
   augroup END
 
-  call vimes#set_state('inactive')
+  call vimes#set_state('disabled')
 endfunction
 
 function! vimes#statusline()
