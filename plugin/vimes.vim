@@ -93,10 +93,8 @@ endfunction
 " Vimes Interactive Mode {{{1
 function! vimes#toggle()
   if g:state ==# 'inactive'
-    let g:state = 'idle'
     call vimes#activate()
   else
-    let g:state = 'inactive'
     call vimes#deactivate()
   endif
 endfunction
@@ -105,9 +103,23 @@ function! vimes#reset_hiragana_startpoint()
   let g:hiragana_start_point = col('.') - 1
 endfunction
 
+function! vimes#reset_kanji_startpoint()
+  let g:kanji_start_point = col('.') - 1
+endfunction
+
+function! vimes#reset_startpoints()
+  call vimes#reset_hiragana_startpoint()
+  call vimes#reset_kanji_startpoint()
+endfunction
+
 function! vimes#cursor_update()
   let current_pos = getpos('.')
   let current_col = current_pos[2] - 1
+
+  if current_col > g:kanji_start_point
+    let g:state = 'typing'
+  endif
+
   if current_col >= g:hiragana_start_point
     let len = current_col - g:hiragana_start_point
     let line = getline('.')
@@ -137,10 +149,22 @@ function! vimes#cursor_update()
   else
     call vimes#reset_hiragana_startpoint()
   end
+
+  if current_col < g:kanji_start_point
+    call vimes#reset_kanji_startpoint()
+  endif
+endfunction
+
+function! vimes#insert_enter()
+  call vimes#reset_startpoints()
+endfunction
+
+function! vimes#insert_leave()
+  let g:state = 'idle'
 endfunction
 
 function! vimes#activate()
-  call vimes#reset_hiragana_startpoint()
+  call vimes#reset_startpoints()
 
   augroup vimes_insert_mode
     autocmd!
@@ -149,12 +173,15 @@ function! vimes#activate()
     autocmd InsertLeave * call vimes#insert_leave()
   augroup END
 
+  let g:state = 'idle'
 endfunction
 
 function! vimes#deactivate()
   augroup vimes_insert_mode
     autocmd!
   augroup END
+
+  let g:state = 'inactive'
 endfunction
 
 function! vimes#statusline()
