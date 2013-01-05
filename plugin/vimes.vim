@@ -10,6 +10,7 @@ let g:loaded_vimes = 1
 let g:hiragana_start_point = 0
 let g:kanji_start_point = 0
 let g:pos_last_input = getpos('.')
+let g:line_last_input = ''
 let g:state = 'disabled'
 
 hi VimesCurrent  ctermbg=DarkMagenta     ctermfg=Black  guibg=#FF00CC    guifg=Black
@@ -138,8 +139,9 @@ endfunction
 function! vimes#cursor_update()
   let current_pos = getpos('.')
   let current_col = current_pos[2] - 1
+  let line = getline('.')
 
-  if current_pos[1] != g:pos_last_input[1]
+  if current_pos[1] != g:pos_last_input[1] || line == g:line_last_input
     call vimes#reset_startpoints()
   endif
 
@@ -149,7 +151,6 @@ function! vimes#cursor_update()
 
   if current_col >= g:hiragana_start_point
     let len = current_col - g:hiragana_start_point
-    let line = getline('.')
     let linelen = strlen(line)
 
     let substr = strpart(line, g:hiragana_start_point, len)
@@ -183,9 +184,14 @@ function! vimes#cursor_update()
 
   call vimes#update_highlight()
   let g:pos_last_input = current_pos
+  let g:line_last_input = getline('.')
 endfunction
 
 function! vimes#set_state(state)
+  if a:state ==# 'idle'
+    let line = getline('.')
+  endif
+
   let g:state = a:state
 endfunction
 
