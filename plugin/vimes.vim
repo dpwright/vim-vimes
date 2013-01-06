@@ -255,6 +255,11 @@ function! vimes#handle_input(input)
     elseif g:state ==# 'select_kanji'
       return "\<C-n>"
     endif
+  elseif a:input == "\<esc>"
+    if g:state ==# 'select_kanji'
+      call vimes#set_state('typing')
+      return "\<C-e>"
+    endif
   endif
 
   return a:input
@@ -287,6 +292,7 @@ function! vimes#activate()
 
   inoremap <buffer> <expr> <space> vimes#handle_input("\<space>")
   inoremap <buffer> <expr> <cr>    vimes#handle_input("\<cr>")
+  inoremap <buffer> <expr> <esc>    vimes#handle_input("\<esc>")
 
   augroup vimes_insert_mode
     autocmd!
