@@ -113,9 +113,12 @@ function! s:roma_hira_op(type) abort
 endfunction
 
 function! s:hira_kan_op(type) abort
+  call vimes#activate()
+  call vimes#set_state('select_kanji')
+  autocmd! vimes_insert_mode InsertEnter
+
   let g:kanji_start_point = col("'[") - 1
   silent exe "normal! `]"
-  set completefunc=vimes#complete
   call feedkeys("a\<C-x>\<C-u>", "n")
 endfunction
 " }}}1
@@ -274,6 +277,7 @@ endfunction
 
 function! vimes#insert_leave()
   call vimes#clear_highlight()
+  autocmd InsertEnter * call vimes#insert_enter()
 
   call vimes#set_state('inactive')
 endfunction
