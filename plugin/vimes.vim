@@ -28,11 +28,28 @@ function! vimes#complete(findstart, base) abort
   end
 endfunction
 
+function! vimes#letter_not_vowel_or_n(character)
+  return index(['a','e','i','o','u','n'],a:character) == -1
+endfunction
+
 function! vimes#convert_string(str_in)
   let str_out = a:str_in
   let start = 0
   let end = strlen(str_out) - start
   while(start < end)
+    let first = strpart(str_out, start, 1)
+    let second = strpart(str_out, start + 1, 1)
+    if first ==# second && vimes#letter_not_vowel_or_n(first)
+      let rep = 'っ'
+
+      let pre_string = strpart(str_out, 0, start)
+      let post_string = strpart(str_out, start+1, end)
+      let str_out = pre_string . rep . post_string
+
+      let start += strlen(rep) - 1
+      let end = strlen(str_out)
+    endif
+
     for i in [1,2,3,4]
       let idx = i - 1
       let current_substr = strpart(str_out, start, i)
@@ -178,7 +195,12 @@ function! vimes#cursor_update()
       let newpos[2] = pre_length + converted_length + 1
       call setpos('.', newpos)
 
-      call vimes#reset_hiragana_startpoint()
+      let g:hiragana_start_point = match(converted_string, '[A-Za-z]')
+      if g:hiragana_start_point == -1
+        call vimes#reset_hiragana_startpoint()
+      else
+        let g:hiragana_start_point += pre_length
+      endif
     endif
   else
     call vimes#reset_hiragana_startpoint()
