@@ -37,17 +37,26 @@ function! vimes#convert_string(str_in)
   let start = 0
   let end = strlen(str_out) - start
   while(start < end)
-    let first = strpart(str_out, start, 1)
-    let second = strpart(str_out, start + 1, 1)
-    if first ==# second && vimes#letter_not_vowel_or_n(first)
-      let rep = 'っ'
+    if strlen(a:str_in) >= 2
+      let first = strpart(str_out, start, 1)
+      let second = strpart(str_out, start + 1, 1)
+      let rep = ''
+      if vimes#letter_not_vowel_or_n(second)
+        if first ==# second
+          let rep = 'っ'
+        elseif first ==# 'n'
+          let rep = 'ん'
+        endif
+      endif
 
-      let pre_string = strpart(str_out, 0, start)
-      let post_string = strpart(str_out, start+1, end)
-      let str_out = pre_string . rep . post_string
+      if rep != ''
+        let pre_string = strpart(str_out, 0, start)
+        let post_string = strpart(str_out, start+1, end)
+        let str_out = pre_string . rep . post_string
 
-      let start += strlen(rep) - 1
-      let end = strlen(str_out)
+        let start += strlen(rep) - 1
+        let end = strlen(str_out)
+      endif
     endif
 
     for i in [1,2,3,4]
