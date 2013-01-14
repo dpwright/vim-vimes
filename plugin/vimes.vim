@@ -19,7 +19,12 @@ hi VimesCurrent  ctermbg=DarkMagenta     ctermfg=Black  guibg=#FF00CC    guifg=B
 " Character conversion {{{1
 function! vimes#complete(findstart, base) abort
   if a:findstart
-    return g:kanji_start_point
+    let current = col('.')
+    if current > g:kanji_start_point
+      return g:kanji_start_point
+    else
+      return -2
+    endif
   else
     let google_out = system("curl -s --data \"langpair=ja-Hira|ja\" --data \"text=" . a:base . "\" http://www.google.com/transliterate")
     let matches = ParseJSON('{ "matches": ' . google_out . '}')["matches"][0][1]
@@ -221,6 +226,7 @@ function! vimes#cursor_update()
     endif
   else
     call vimes#reset_hiragana_startpoint()
+    call vimes#set_state('idle')
   end
 
   if current_col < g:kanji_start_point
