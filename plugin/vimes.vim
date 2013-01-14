@@ -210,6 +210,11 @@ function! vimes#cursor_update()
       else
         let g:hiragana_start_point += pre_length
       endif
+
+      if substr == ' '
+        call vimes#reset_kanji_startpoint()
+        call vimes#set_state('idle')
+      endif
     endif
   else
     call vimes#reset_hiragana_startpoint()
